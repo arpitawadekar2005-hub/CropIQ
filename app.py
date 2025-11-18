@@ -5,6 +5,29 @@ from tensorflow.keras.preprocessing import image
 
 # ---------- CONFIG: EDIT THESE ----------
 MODEL_PATH = "plant_disease_model.h5"   # your .h5 file
+classes = ['Apple___Apple_scab',
+ 'Apple___Black_rot',
+ 'Apple___healthy',
+ 'Cherry_(including_sour)___Powdery_mildew',
+ 'Cherry_(including_sour)___healthy',
+ 'Corn_(maize)___Common_rust_',
+ 'Corn_(maize)___healthy',
+ 'Grape___Black_rot',
+ 'Grape___Esca_(Black_Measles)',
+ 'Grape___healthy',
+ 'Peach___Bacterial_spot',
+ 'Peach___healthy',
+ 'Pepper,_bell___Bacterial_spot',
+ 'Pepper,_bell___healthy',
+ 'Potato___Early_blight',
+ 'Potato___Late_blight',
+ 'Potato___healthy',
+ 'Strawberry___Leaf_scorch',
+ 'Strawberry___healthy',
+ 'Tomato___Bacterial_spot',
+ 'Tomato___Early_blight',
+ 'Tomato___Late_blight',
+ 'Tomato___healthy']
 
 @st.cache_resource
 def load_cnn_model():
