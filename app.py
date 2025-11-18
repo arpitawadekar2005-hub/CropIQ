@@ -4,7 +4,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
 # ---------- CONFIG: EDIT THESE ----------
-MODEL_PATH = "plant_diseasemodel.h5"   # your .h5 file
+MODEL_PATH = "plant_disease_model.h5"   # your .h5 file
 
 @st.cache_resource
 def load_cnn_model():
