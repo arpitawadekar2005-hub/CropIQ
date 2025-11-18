@@ -151,9 +151,5 @@ def main():
             st.write(f"**Base Dose:** {base_ml_per_L} ml per 1 L water")
             st.write(f"**Final Dose for 100 ml spray:** `{final_dose} ml`")
 
-        with st.expander("🔎 Raw Model Output"):
-            st.write(pred.tolist())
-
-
 if __name__ == "__main__":
     main()
