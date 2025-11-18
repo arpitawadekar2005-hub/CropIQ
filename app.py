@@ -62,12 +62,40 @@ def compute_final_dose(base_ml_per_L, infection_percent, water_volume_ml=100):
     final_dose = base_for_container * (infection_percent / 100.0)
     return round(final_dose, 3)
 
+# def extract_plant_and_disease(label):
+#     """ Convert 'Tomato___Late_blight' → ('Tomato', 'Late_blight') """
+#     parts = label.split("___")
+#     plant = parts[0]
+#     disease = parts[1] if len(parts) > 1 else "healthy"
+#     return plant, disease
+
 def extract_plant_and_disease(label):
-    """ Convert 'Tomato___Late_blight' → ('Tomato', 'Late_blight') """
     parts = label.split("___")
-    plant = parts[0]
-    disease = parts[1] if len(parts) > 1 else "healthy"
+    raw_plant = parts[0]
+    raw_disease = parts[1] if len(parts) > 1 else "healthy"
+
+    # Clean plant
+    plant = (
+        raw_plant.replace("_(including_sour)", "")
+                 .replace("(including_sour)", "")
+                 .replace("(maize)", "")
+                 .replace(",", "")
+                 .replace("_", " ")
+                 .strip()
+                 .lower()
+    )
+
+    # Clean disease
+    disease = (
+        raw_disease.replace("_", " ")
+                   .replace("(Black Measles)", "")
+                   .replace("(Black_Measles)", "")
+                   .strip()
+                   .lower()
+    )
+
     return plant, disease
+
 
 
 @st.cache_resource
