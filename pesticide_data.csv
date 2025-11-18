@@ -1,5 +1,5 @@
 plant,disease,pesticide,base_ml_per_L
-potato,early_blight,Captan,2.0
+potato,early blight,Captan,2.0
 potato,late blight,Tebuconazole,1.0
 tomato,bacteria spot,Streptomycin,1.0
 tomato,early blight,Mancozeb,2.5
