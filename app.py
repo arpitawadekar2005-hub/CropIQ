@@ -62,13 +62,6 @@ def compute_final_dose(base_ml_per_L, infection_percent, water_volume_ml=100):
     final_dose = base_for_container * (infection_percent / 100.0)
     return round(final_dose, 3)
 
-# def extract_plant_and_disease(label):
-#     """ Convert 'Tomato___Late_blight' → ('Tomato', 'Late_blight') """
-#     parts = label.split("___")
-#     plant = parts[0]
-#     disease = parts[1] if len(parts) > 1 else "healthy"
-#     return plant, disease
-
 def extract_plant_and_disease(label):
     parts = label.split("___")
     raw_plant = parts[0]
@@ -143,10 +136,9 @@ def main():
         # Get pesticide info
         pesticide, base_ml_per_L = get_base_dose(plant, disease)
 
-        st.subheader("🟩 Prediction Result")
+        st.subheader("🟩 Analysis Result")
         st.write(f"**Plant:** {plant}")
         st.write(f"**Disease:** {disease}")
-        st.write(f"**Confidence:** {confidence*100:.2f}%")
         st.write(f"**Infection %:** {infection_percent}%")
 
         if pesticide is None:
