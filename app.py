@@ -1,11 +1,15 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
-# ---------- CONFIG: EDIT THESE ----------
-MODEL_PATH = "plant_disease_model.h5"   # your .h5 file
-classes = ['Apple___Apple_scab',
+# ---------- CONFIG ----------
+MODEL_PATH = "plant_disease_model.h5"
+CSV_PATH = "pesticide_data.csv"
+
+classes = [
+ 'Apple___Apple_scab',
  'Apple___Black_rot',
  'Apple___healthy',
  'Cherry_(including_sour)___Powdery_mildew',
@@ -27,66 +31,107 @@ classes = ['Apple___Apple_scab',
  'Tomato___Bacterial_spot',
  'Tomato___Early_blight',
  'Tomato___Late_blight',
- 'Tomato___healthy']
+ 'Tomato___healthy'
+]
+
+# Load pesticide csv
+pesticide_df = pd.read_csv(CSV_PATH)
+
+# ------------------------------------------
+# FUNCTIONS
+# ------------------------------------------
+
+def confidence_to_infection(confidence):
+    return round(confidence * 100, 2)
+
+def get_base_dose(plant, disease):
+    row = pesticide_df[
+        (pesticide_df['plant'].str.lower() == plant.lower()) &
+        (pesticide_df['disease'].str.lower() == disease.lower())
+    ]
+
+    if row.empty:
+        return None, None
+
+    pesticide = row.iloc[0]['pesticide']
+    base_ml_per_L = float(row.iloc[0]['base_ml_per_L'])
+    return pesticide, base_ml_per_L
+
+def compute_final_dose(base_ml_per_L, infection_percent, water_volume_ml=100):
+    base_for_container = base_ml_per_L * (water_volume_ml / 1000.0)
+    final_dose = base_for_container * (infection_percent / 100.0)
+    return round(final_dose, 3)
+
+def extract_plant_and_disease(label):
+    """ Convert 'Tomato___Late_blight' → ('Tomato', 'Late_blight') """
+    parts = label.split("___")
+    plant = parts[0]
+    disease = parts[1] if len(parts) > 1 else "healthy"
+    return plant, disease
+
 
 @st.cache_resource
 def load_cnn_model():
-    model = load_model(MODEL_PATH)
-    return model
+    return load_model(MODEL_PATH)
 
 
+# ------------------------------------------
+# STREAMLIT APP
+# ------------------------------------------
 def main():
-    st.title("CNN Image Classifier")
+    st.title("🌿 Plant Disease Detector + Pesticide Calculator")
+    st.write("Upload an image to predict disease and calculate pesticide dosage.")
 
-    st.write("Upload an image and get prediction from your .h5 model.")
+    uploaded_file = st.file_uploader("Upload leaf image", type=["jpg", "jpeg", "png"])
 
-    uploaded_file = st.file_uploader(
-        "Choose an image...",
-        type=["jpg", "jpeg", "png"]
-    )
+    if uploaded_file:
 
-    if uploaded_file is not None:
-        # Show image
         st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
 
         # Load model
         model = load_cnn_model()
 
-        # Infer input size from model
-        # Expected input shape: (None, H, W, C)
+        # Get input shape
         input_shape = model.input_shape
-        if len(input_shape) != 4:
-            st.error(f"Unexpected model input shape: {input_shape}")
-            return
+        img_size = input_shape[1]
 
-        img_size = input_shape[1]  # assume square images (H == W)
-
-        # ---- Preprocess (same as your code) ----
+        # Preprocess image
         img = image.load_img(uploaded_file, target_size=(img_size, img_size))
-        img_array = image.img_to_array(img)
+        img_array = image.img_to_array(img) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
-        img_array = img_array / 255.0
-        # ---------------------------------------
 
         # Predict
-        pred = model.predict(img_array)
-        pred_class_idx = np.argmax(pred)
-        confidence = float(np.max(pred) * 100)
+        pred = model.predict(img_array)[0]
+        pred_idx = np.argmax(pred)
+        confidence = float(np.max(pred))
 
-        # Defensive check in case classes list is wrong length
-        if pred_class_idx >= len(classes):
-            st.error(
-                f"Prediction index {pred_class_idx} is out of range for classes list "
-                f"(len={len(classes)}). Fix your 'classes' array."
-            )
-            return
+        # Identify disease
+        predicted_label = classes[pred_idx]
+        plant, disease = extract_plant_and_disease(predicted_label)
 
-        st.subheader("Prediction")
-        st.write(f"**Class:** {classes[pred_class_idx]}")
-        st.write(f"**Confidence:** {confidence:.2f}%")
+        # Calculate infection %
+        infection_percent = confidence_to_infection(confidence)
 
-        # Optional: show raw probabilities
-        with st.expander("Show raw model output"):
+        # Get pesticide info
+        pesticide, base_ml_per_L = get_base_dose(plant, disease)
+
+        st.subheader("🟩 Prediction Result")
+        st.write(f"**Plant:** {plant}")
+        st.write(f"**Disease:** {disease}")
+        st.write(f"**Confidence:** {confidence*100:.2f}%")
+        st.write(f"**Infection %:** {infection_percent}%")
+
+        if pesticide is None:
+            st.error("⚠️ No pesticide information found for this plant & disease.")
+        else:
+            final_dose = compute_final_dose(base_ml_per_L, infection_percent)
+
+            st.subheader("💧 Pesticide Calculation")
+            st.write(f"**Recommended Pesticide:** {pesticide}")
+            st.write(f"**Base Dose:** {base_ml_per_L} ml per 1 L water")
+            st.write(f"**Final Dose for 100 ml spray:** `{final_dose} ml`")
+
+        with st.expander("🔎 Raw Model Output"):
             st.write(pred.tolist())
 
 
