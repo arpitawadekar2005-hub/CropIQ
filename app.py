@@ -8,6 +8,13 @@ from tensorflow.keras.preprocessing import image
 MODEL_PATH = "plant_disease_model.h5"
 CSV_PATH = "pesticide_data.csv"
 
+DRIVE_FILE_ID = "170lylylDDiePU_pj1bfXppef6li1VMqz"  # <-- replace
+
+def download_model():
+    if not os.path.exists(MODEL_PATH):
+        url = f"https://drive.google.com/uc?id={DRIVE_FILE_ID}"
+        gdown.download(url, MODEL_PATH, quiet=False)
+
 classes = [
  'Apple___Apple_scab',
  'Apple___Black_rot',
@@ -93,6 +100,7 @@ def extract_plant_and_disease(label):
 
 @st.cache_resource
 def load_cnn_model():
+    download_model()
     return load_model(MODEL_PATH)
 
 
