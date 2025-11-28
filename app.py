@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
-
+import os
+import gdown
 # ---------- CONFIG ----------
 MODEL_PATH = "plant_disease_model.h5"
 CSV_PATH = "pesticide_data.csv"
